@@ -114,3 +114,45 @@ export function fmtDate(iso: string | null) {
   if (!iso) return null;
   return new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " IST";
 }
+
+export type OwnerRow = { id: string; name: string; kind: string };
+export async function listOwners(tenantId: string) {
+  return query<OwnerRow>(`select id, name, kind from office.owners where tenant_id = $1 and active order by name`, [tenantId]);
+}
+
+export type CheckRow = { id: string; name: string; description: string; kind: string; created_at: string };
+export async function listChecks(findingId: string) {
+  return query<CheckRow>(`select id, name, description, kind, created_at::text as created_at from office.checks where finding_id = $1 order by created_at`, [findingId]);
+}
+
+export type RunRow = { id: string; check_id: string; ran_at: string; matched_count: number; sample: string[]; result: string; note: string | null; run_by: string };
+export async function listRuns(findingId: string) {
+  return query<RunRow>(
+    `select r.id, r.check_id, r.ran_at::text as ran_at, r.matched_count, r.sample, r.result, r.note, r.run_by
+       from office.check_runs r join office.checks c on c.id = r.check_id
+      where c.finding_id = $1 order by r.ran_at`,
+    [findingId]
+  );
+}
+
+export type RuleRow = { id: string; rule: string; status: string; proposed_by: string; accepted_at: string | null; failed_at: string | null };
+export async function listRules(findingId: string) {
+  return query<RuleRow>(
+    `select id, rule, status, proposed_by, accepted_at::text as accepted_at, failed_at::text as failed_at from office.prevention_rules where finding_id = $1 order by created_at`,
+    [findingId]
+  );
+}
+
+/** Would the database let this finding close right now? Mirrors the trigger, read-only. */
+export async function closeReadiness(findingId: string) {
+  const [r] = await query<{ clean_after_fix: boolean; rule_in_force: boolean; fix_reported_at: string | null }>(
+    `select
+       exists (select 1 from office.check_runs r join office.checks c on c.id = r.check_id
+                where c.finding_id = f.id and r.result = 'clean' and f.fix_reported_at is not null and r.ran_at >= f.fix_reported_at) as clean_after_fix,
+       exists (select 1 from office.prevention_rules p where p.finding_id = f.id and p.status = 'in_force') as rule_in_force,
+       f.fix_reported_at::text as fix_reported_at
+     from office.findings f where f.id = $1`,
+    [findingId]
+  );
+  return r ?? { clean_after_fix: false, rule_in_force: false, fix_reported_at: null };
+}

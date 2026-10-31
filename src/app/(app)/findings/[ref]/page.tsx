@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { currentTenant } from "@/lib/tenant";
-import { AREA_LABEL, STATUS_LABEL, age, fmtDate, getFinding, listAudit, listEvidence, nextAction } from "@/lib/findings";
+import { AREA_LABEL, STATUS_LABEL, age, fmtDate, getFinding, listAudit, listEvidence, listOwners, listRules, nextAction } from "@/lib/findings";
+import { FindingActions } from "@/components/FindingActions";
 
 const SEV: Record<string, string> = { S1: "pj-badge--critical", S2: "pj-badge--high", S3: "pj-badge--medium", S4: "pj-badge--info" };
 
@@ -14,7 +15,7 @@ export default async function FindingPage({ params }: { params: Promise<{ ref: s
   const tenant = await currentTenant();
   const f = await getFinding(tenant.id, ref.toUpperCase());
   if (!f) notFound();
-  const [evidence, audit] = await Promise.all([listEvidence(f.id), listAudit(f.id)]);
+  const [evidence, audit, owners, rules] = await Promise.all([listEvidence(f.id), listAudit(f.id), listOwners(tenant.id), listRules(f.id)]);
   const act = nextAction(f.status);
 
   const legal: Record<string, string> = {
@@ -90,12 +91,21 @@ export default async function FindingPage({ params }: { params: Promise<{ ref: s
             <div className="pj-card" style={{ padding: 16 }}>
               <h2 className="sec-h">Next action: {act.label}</h2>
               <p className="pj-src" style={{ margin: "0 0 12px" }}>{legal[f.status]}</p>
-              <button className="pj-btn pj-btn--primary" type="button" disabled title="Status changes are built on Day 3" style={{ justifyContent: "center", width: "100%" }}>
-                {act.label}
-              </button>
-              <p className="pj-src" style={{ margin: "8px 0 0" }}>Not wired yet: status changes arrive on Day 3. The rules behind them already run in the database — see <span className="pj-mono">db/migrations/001_init.sql</span>.</p>
-              <p className="pj-src" style={{ margin: "8px 0 0" }}>Closing never appears here. It lives on the verify screen alone, and the database refuses it without a clean check run after the fix report and a prevention rule in force.</p>
+              <FindingActions id={f.id} findingRef={f.ref} status={f.status} owners={owners} />
+              <p className="pj-src" style={{ margin: "12px 0 0" }}>The status decides what is offered. Closing never appears here; it lives on the verify screen alone, and the database refuses it without a clean check run after the fix report and a prevention rule in force.</p>
             </div>
+
+            {rules.length > 0 && (
+              <div className="pj-card" style={{ padding: 16 }}>
+                <h2 className="sec-h">Prevention rule</h2>
+                {rules.map((r) => (
+                  <p key={r.id} style={{ margin: "0 0 8px", fontSize: 13, lineHeight: "18px" }}>
+                    <span className={`pj-badge ${r.status === "in_force" ? "pj-badge--verified" : r.status === "failed" ? "pj-badge--critical" : "pj-badge--outline"}`}>{r.status.replace("_", " ")}</span>{" "}
+                    {r.rule}
+                  </p>
+                ))}
+              </div>
+            )}
 
             <div className="pj-card" style={{ padding: 16 }}>
               <h2 className="sec-h">History</h2>
