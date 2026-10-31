@@ -1,0 +1,23 @@
+# secrets — never commit
+.env
+.env.*
+!.env.example
+
+# dependencies and build output
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# evidence files belong in object storage, never in git
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf
+*.mp4
+!public/**/*.svg
+
+.DS_Store

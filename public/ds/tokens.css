@@ -1,0 +1,77 @@
+/* Parakkat SEO Command Center — generated from tokens.json */
+:root, [data-theme="light"] {
+  --surface-0: #ffffff;
+  --surface-100: #f6f7f9;
+  --surface-200: #edeff3;
+  --surface-300: #e1e4ea;
+  --border: #e1e4ea;
+  --border-strong: #8d95a5;
+  --ink: #141a26;
+  --ink-muted: #4d5668;
+  --ink-subtle: #646c7e;
+  --nav-bg: #0e1626;
+  --nav-bg-raised: #18223a;
+  --nav-bg-active: #1f2b42;
+  --nav-ink: #e7ebf3;
+  --nav-ink-muted: #98a2b6;
+  --brand: #8b001d;
+  --brand-hover: #6f0017;
+  --brand-tint: #f8ecee;
+  --on-brand: #ffffff;
+  --focus: #2456d6;
+  --focus-on-nav: #7fa2ff;
+  --critical: #b42318;
+  --critical-tint: #fdedeb;
+  --high: #a6460a;
+  --high-tint: #fdf0e6;
+  --medium: #7a5c00;
+  --medium-tint: #fbf3d9;
+  --info: #33549a;
+  --info-tint: #ebf0fa;
+  --verified: #0a6170;
+  --verified-tint: #e5f3f4;
+  --hypothesis: #574887;
+  --hypothesis-tint: #f1eef8;
+  --demo: #6a4c00;
+  --demo-tint: #fff4cc;
+  --chart-1: #1f3b73;
+  --chart-2: #8b001d;
+  --chart-3: #3f8fa6;
+  --chart-4: #c08a2b;
+  --chart-compare: #9aa3b5;
+  --chart-grid: #e6e9ef;
+  --shadow-pop: 0 4px 12px rgba(14,22,38,0.12), 0 1px 2px rgba(14,22,38,0.08);
+  --shadow-overlay: 0 16px 40px rgba(14,22,38,0.22);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 56px;
+  --row-h: 40px;
+  --row-h-compact: 32px;
+  --drawer-w: 560px;
+  --content-max: 1600px;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-brand: "DM Serif Display", Georgia, serif;
+}
+.page-title { font-family: var(--font-sans); font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.section-title { font-family: var(--font-sans); font-size: 15px; line-height: 22px; font-weight: 600; }
+.body { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
+.body-sm { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; }
+.caption { font-family: var(--font-sans); font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; }
+.kpi-value { font-family: var(--font-sans); font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em; }
+.mono { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 400; }
+.wordmark { font-family: var(--font-brand); font-size: 18px; line-height: 22px; font-weight: 400; }
