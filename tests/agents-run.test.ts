@@ -59,6 +59,9 @@ describe("agent runner", () => {
     const n = (await db.query(`select count(*)::int n from office.findings where tenant_id = $1 and fingerprint = $2`, [tenant, FP])).rows[0].n;
     expect(n).toBe(1);
     expect((await finding()).scope_count).toBe(1);
+    const ev = (await db.query(`select body from office.evidence where finding_id = $1 order by created_at`, [(await finding()).id])).rows;
+    expect(ev).toHaveLength(2);
+    expect(ev[1].body).toContain("Count changed from 2 to 1 of 1 variants");
   });
 
   it("agents cannot close: a clean run is recorded, the human closes; then a recurrence reopens and fails the rule", async () => {

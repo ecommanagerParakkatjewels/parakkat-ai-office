@@ -72,17 +72,17 @@ async function file(c: PoolClient, tenantId: string, d: Detector, det: Detection
   const sample = det.hits.slice(0, SAMPLE).map((h) => `${h.handle} — ${h.detail}`);
   const source = `Shopify Admin API bulk read ${cat.bulkOperationId.split("/").pop()}, ${cat.readAt}`;
 
-  const existing = await c.query<{ id: string; ref: string; status: string }>(
-    `select id, ref, status from office.findings where tenant_id = $1 and fingerprint = $2 for update`,
+  const existing = await c.query<{ id: string; ref: string; status: string; scope_count: number | null }>(
+    `select id, ref, status, scope_count from office.findings where tenant_id = $1 and fingerprint = $2 for update`,
     [tenantId, d.fingerprint],
   );
   let f = existing.rows[0] ?? null;
 
   if (!f) {
     if (matched === 0) return { outcome: "nothing_found", findingId: null, ref: null };
-    const ins = await c.query<{ id: string; ref: string; status: string }>(
+    const ins = await c.query<{ id: string; ref: string; status: string; scope_count: number | null }>(
       `insert into office.findings (tenant_id, title, source, source_ref, fingerprint, area, scope_count, scope_unit, scope_counted_at)
-       values ($1, $2, 'detector', $3, $4, $5, $6, $7, current_date) returning id, ref, status`,
+       values ($1, $2, 'detector', $3, $4, $5, $6, $7, current_date) returning id, ref, status, scope_count`,
       [tenantId, d.title, d.id, d.fingerprint, d.area, matched, det.unit],
     );
     f = ins.rows[0]!;
@@ -110,6 +110,13 @@ async function file(c: PoolClient, tenantId: string, d: Detector, det: Detection
 
   if (existing.rows.length === 0) return { outcome: "filed", findingId: f.id, ref: f.ref };
 
+  // A changed count is new evidence: record it, so the finding never shows a stale number.
+  if (f.scope_count !== matched) {
+    await c.query(
+      `insert into office.evidence (tenant_id, finding_id, kind, body, source, read_at) values ($1, $2, 'record', $3, $4, $5)`,
+      [tenantId, f.id, `Count changed from ${f.scope_count ?? "none"} to ${matched} of ${det.scanned} ${det.unit}.\nCheck: ${d.check}\nSample (up to ${SAMPLE}):\n${sample.join("\n")}`, source, cat.readAt],
+    );
+  }
   await c.query(`update office.findings set scope_count = $2, scope_unit = $3, scope_counted_at = current_date where id = $1`, [f.id, matched, det.unit]);
   // Only a CLOSED finding reopens. An accepted risk is expected to keep matching.
   if (matched > 0 && f.status === "closed") {

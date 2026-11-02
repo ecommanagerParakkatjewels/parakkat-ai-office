@@ -91,7 +91,7 @@ export async function getFinding(tenantId: string, ref: string) {
 export type EvidenceRow = { id: string; kind: string; body: string | null; url: string | null; source: string; read_at: string };
 export async function listEvidence(findingId: string) {
   return query<EvidenceRow>(
-    `select id, kind, body, url, source, read_at::text as read_at from office.evidence where finding_id = $1 order by created_at`,
+    `select id, kind, body, url, source, read_at::text as read_at from office.evidence where finding_id = $1 order by created_at desc`,
     [findingId]
   );
 }
