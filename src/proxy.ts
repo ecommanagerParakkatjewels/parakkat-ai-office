@@ -4,7 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAllowed } from "@/lib/allow";
 
-const PUBLIC = ["/login", "/auth", "/api/health", "/ds"];
+// /api/cron authenticates itself with CRON_SECRET and fails closed without it.
+const PUBLIC = ["/login", "/auth", "/api/health", "/api/cron", "/ds"];
 
 export async function proxy(req: NextRequest) {
   // Let server layouts know the path, for the active nav item.
