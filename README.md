@@ -2,11 +2,13 @@
 
 An operations system for Parakkat Jewels that takes a known problem to verified closure and proves it stayed closed. Claude is the reasoning engine, called from the server. Nothing here changes anything in Shopify, an ad or a shipment: the system recommends and records, people act.
 
-The full plan is the blueprint (`parakkat_ai_office_plan_v1.8.html` in the project docs). This README covers only running the code.
+The full plan is the blueprint (`parakkat_ai_office_plan_v1.9.html` in the project docs). This README covers only running the code.
 
 ## Status — 2 Nov 2026
 
 Live at https://parakkat-ai-office.vercel.app (Vercel, Mumbai) on Supabase (Mumbai). Every push to `main` deploys.
+
+Six read-only Shopify agents run daily (Vercel Cron, ~06:00 IST) and from the Agents page; they file, update and reopen findings, never triage, assign or close. Shopify is reached by a Dev Dashboard app locked to the one store with `read_products` only; the token is stored encrypted. Next: cross-check on every run, Report-an-issue intake, instant re-check on a reported fix, then the Claude Triage desk (needs an Anthropic Console key).
 
 | Day | Scope | State |
 |---|---|---|
