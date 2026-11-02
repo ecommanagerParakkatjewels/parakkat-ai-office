@@ -26,7 +26,14 @@ export function paise(v: string | null | undefined): number | null {
   return Number.isFinite(n) ? Math.round(n * 100) : null;
 }
 
-const textOf = (p: Product) => [p.title, p.description, ...(p.tags ?? [])].join(" \n ");
+/** Everything a customer or a search engine reads as copy: title, description, tags, SEO title and description. */
+const textOf = (p: Product) => [p.title, p.description, ...(p.tags ?? []), p.seo?.title ?? "", p.seo?.description ?? ""].join(" \n ");
+
+/** Which field a pattern was found in, for the evidence sample. */
+function where(p: Product, re: RegExp): string {
+  const fields: [string, string][] = [["title", p.title], ["description", p.description], ["tags", (p.tags ?? []).join(", ")], ["SEO title", p.seo?.title ?? ""], ["SEO description", p.seo?.description ?? ""]];
+  return fields.filter(([, v]) => re.test(v)).map(([k]) => k).join(" + ");
+}
 
 export const DETECTORS: Detector[] = [
   {
@@ -49,15 +56,16 @@ export const DETECTORS: Detector[] = [
     },
   },
   {
-    id: "lifetime_service_warranty_wording",
+    id: "lifetime_warranty_claim",
     agentId: "seo_content",
     area: "seo_content",
-    fingerprint: "content:lifetime-service-warranty:active-products",
-    title: "“Lifetime Service Warranty” wording live on product pages",
-    check: "Active products whose title, description or tags contain “Lifetime Service Warranty” (case-insensitive)",
+    fingerprint: "content:lifetime-warranty-claim:active-products",
+    title: "“Lifetime warranty” promised in product copy",
+    check: "Active products whose title, description, tags, SEO title or SEO description say “lifetime warranty” or “lifetime service warranty”. Approved policy: 2-year warranty (3 Premium, 5 idol colour); only paid service is lifetime.",
     run(products) {
       const ps = active(products);
-      const hits = ps.filter((p) => /lifetime\s+service\s+warranty/i.test(textOf(p))).map((p) => ({ handle: p.handle, detail: p.title }));
+      const re = /lifetime\s+(service\s+)?warrant(y|ies)/i;
+      const hits = ps.filter((p) => re.test(textOf(p))).map((p) => ({ handle: p.handle, detail: `${p.title} [${where(p, re)}]` }));
       return { scanned: ps.length, unit: "products", hits };
     },
   },
@@ -67,10 +75,24 @@ export const DETECTORS: Detector[] = [
     area: "catalogue",
     fingerprint: "catalogue:gold-plated-term:active-products",
     title: "“Gold plated” used where the approved term is “Gold layered”",
-    check: "Active products whose title, description or tags say “gold plated” / “gold-plated” (approved brand term is “Gold layered”)",
+    check: "Active products whose title, description, tags, SEO title or SEO description say “gold plated” / “gold-plated” (approved brand term is “Gold layered”)",
     run(products) {
       const ps = active(products);
-      const hits = ps.filter((p) => /gold[\s-]*plated/i.test(textOf(p))).map((p) => ({ handle: p.handle, detail: p.title }));
+      const re = /gold[\s-]*plated/i;
+      const hits = ps.filter((p) => re.test(textOf(p))).map((p) => ({ handle: p.handle, detail: `${p.title} [${where(p, re)}]` }));
+      return { scanned: ps.length, unit: "products", hits };
+    },
+  },
+  {
+    id: "gold_plated_in_url",
+    agentId: "seo_content",
+    area: "seo_content",
+    fingerprint: "seo:gold-plated-in-url-handle:active-products",
+    title: "“gold-plated” in product web addresses",
+    check: "Active products whose URL handle contains “gold-plated”. Changing a handle needs a 301 redirect from the old address, so this is a separate fix from the copy.",
+    run(products) {
+      const ps = active(products);
+      const hits = ps.filter((p) => /gold-?plated/i.test(p.handle)).map((p) => ({ handle: p.handle, detail: p.title }));
       return { scanned: ps.length, unit: "products", hits };
     },
   },

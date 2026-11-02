@@ -28,14 +28,15 @@ describe("detectors", () => {
     expect(r.hits.map((h) => h.handle)).toEqual(["a"]);
   });
 
-  it("warranty wording: case-insensitive, any whitespace, title/description/tags", () => {
-    const r = det("lifetime_service_warranty_wording").run([
+  it("lifetime warranty claim: any field including SEO, with or without 'service'", () => {
+    const r = det("lifetime_warranty_claim").run([
       P({ handle: "a", description: "Comes with LIFETIME  service\nwarranty" }),
-      P({ handle: "b", tags: ["Lifetime Service Warranty"] }),
-      P({ handle: "c", description: "Lifetime warranty on plating" }),
+      P({ handle: "b", seo: { title: null, description: "Enjoy a Lifetime Warranty on Our Earrings" } }),
+      P({ handle: "c", description: "Lifetime service available; 2-year warranty" }),
       P({ handle: "d", status: "ARCHIVED", description: "Lifetime Service Warranty" }),
     ]);
     expect(r.hits.map((h) => h.handle)).toEqual(["a", "b"]);
+    expect(r.hits[1]!.detail).toContain("SEO description");
     expect(r.scanned).toBe(3);
   });
 
@@ -44,8 +45,15 @@ describe("detectors", () => {
       P({ handle: "a", title: "Gold-plated Jhumka" }),
       P({ handle: "b", description: "gold   plated finish" }),
       P({ handle: "c", tags: ["Thick Gold Layered"] }),
+      P({ handle: "d", seo: { title: null, description: "Gold-Plated Earring Studs" } }),
+      P({ handle: "e-gold-plated-earrings", title: "Studs Gold Layered" }),
     ]);
-    expect(r.hits.map((h) => h.handle)).toEqual(["a", "b"]);
+    expect(r.hits.map((h) => h.handle)).toEqual(["a", "b", "d"]);
+  });
+
+  it("gold-plated in the URL handle is its own defect class", () => {
+    const r = det("gold_plated_in_url").run([P({ handle: "stud-gold-plated-earrings" }), P({ handle: "stud-goldplated" }), P({ handle: "stud-gold-layered" })]);
+    expect(r.hits.map((h) => h.handle)).toEqual(["stud-gold-plated-earrings", "stud-goldplated"]);
   });
 
   it("no image and missing SEO description", () => {

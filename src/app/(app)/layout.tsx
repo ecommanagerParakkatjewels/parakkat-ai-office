@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   );
   const path = (await headers()).get("x-pathname") ?? "/";
   return (
-    <Shell current={path.startsWith("/findings") ? "/findings" : "/"} tenantName={tenant.name} email={user.email ?? ""} openCount={Number(open?.n ?? 0)}>
+    <Shell current={path.startsWith("/findings") ? "/findings" : path.startsWith("/agents") ? "/agents" : "/"} tenantName={tenant.name} email={user.email ?? ""} openCount={Number(open?.n ?? 0)}>
       {children}
     </Shell>
   );
