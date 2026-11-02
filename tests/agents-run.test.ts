@@ -26,8 +26,13 @@ beforeAll(async () => {
   await db.connect();
   await db.query("select set_config('app.actor', 'test-suite', false)");
   tenant = (await db.query(`select id from office.tenants where slug = 'jewels'`)).rows[0].id;
-  // start clean for the fingerprints this file uses
+  // start clean: this file owns the compare-at fingerprint in the test database
   await db.query(`update office.agent_runs set status = 'failed', error = 'test reset', finished_at = now() where status = 'running'`);
+  const old = (await db.query(`select id from office.findings where tenant_id = $1 and fingerprint = $2`, [tenant, FP])).rows;
+  for (const o of old) {
+    await db.query(`delete from office.agent_runs where finding_id = $1`, [o.id]);
+    await db.query(`delete from office.findings where id = $1`, [o.id]);
+  }
 });
 
 describe("agent runner", () => {

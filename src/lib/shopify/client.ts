@@ -1,14 +1,17 @@
 // Read-only Shopify Admin API client. Server only.
 //
 // Access, in order of preference:
-//   SHOPIFY_ADMIN_TOKEN                       a token from an existing custom app or an OAuth install
-//   SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET  Dev Dashboard app in the same organisation as the store
-//                                             (client credentials grant; token lives 24 h, cached here)
+//   SHOPIFY_ADMIN_TOKEN       a token from an existing custom app (env)
+//   office.integrations       the token our own OAuth install stored, encrypted (/api/shopify/install)
+//   client credentials        Dev Dashboard app whose organisation also holds the store (24 h, cached)
 // SHOPIFY_STORE is the store's subdomain, without ".myshopify.com".
 //
 // Read-only is enforced in code, not just by scopes: the only operation allowed
 // that is not a query is bulkOperationRunQuery, which itself only reads.
 import "server-only";
+import { query } from "../db";
+import { open } from "../crypto";
+import { currentTenant } from "../tenant";
 
 export const SHOPIFY_API_VERSION = "2026-10";
 
@@ -27,6 +30,8 @@ export function shopifyConfigured(): boolean {
 async function token(): Promise<string> {
   if (process.env.SHOPIFY_ADMIN_TOKEN) return process.env.SHOPIFY_ADMIN_TOKEN;
   if (cached && cached.expiresAt - 60_000 > Date.now()) return cached.token;
+  const installed = await installedToken();
+  if (installed) { cached = { token: installed, expiresAt: Date.now() + 10 * 60_000 }; return installed; }
   const id = process.env.SHOPIFY_CLIENT_ID, secret = process.env.SHOPIFY_CLIENT_SECRET;
   if (!id || !secret) throw new Error("Shopify access is not configured");
   const res = await fetch(`https://${store()}.myshopify.com/admin/oauth/access_token`, {
@@ -60,4 +65,25 @@ export async function gql<T>(document: string, variables: Record<string, unknown
     return body.data as T;
   }
   throw new Error("Shopify kept throttling the request");
+}
+
+/** The token from our OAuth install, if the app has been installed on the store. */
+async function installedToken(): Promise<string | null> {
+  const t = await currentTenant();
+  const r = await query<{ token_enc: string }>(`select token_enc from office.integrations where tenant_id = $1 and provider = 'shopify'`, [t.id]);
+  return r[0] ? open(r[0].token_enc) : null;
+}
+
+export type ShopifyStatus = { configured: boolean; connected: boolean; account: string | null; scopes: string | null; installedAt: string | null; via: "env_token" | "installed_app" | "none" };
+
+/** For the Agents page: is the app set up, and has it been installed on the store? */
+export async function shopifyStatus(): Promise<ShopifyStatus> {
+  const configured = shopifyConfigured();
+  if (process.env.SHOPIFY_ADMIN_TOKEN) return { configured, connected: true, account: process.env.SHOPIFY_STORE ?? null, scopes: null, installedAt: null, via: "env_token" };
+  const t = await currentTenant();
+  const r = await query<{ account: string; scopes: string; installed_at: string }>(
+    `select account, scopes, installed_at::text from office.integrations where tenant_id = $1 and provider = 'shopify'`, [t.id]);
+  return r[0]
+    ? { configured, connected: true, account: r[0].account, scopes: r[0].scopes, installedAt: r[0].installed_at, via: "installed_app" }
+    : { configured, connected: false, account: null, scopes: null, installedAt: null, via: "none" };
 }

@@ -3,7 +3,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { runAgents } from "@/lib/agents/run";
-import { shopifyConfigured } from "@/lib/shopify/client";
+import { shopifyStatus } from "@/lib/shopify/client";
 import { currentTenant } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ function authorised(req: NextRequest): boolean {
 
 export async function GET(req: NextRequest) {
   if (!authorised(req)) return NextResponse.json({ ok: false }, { status: 401 });
-  if (!shopifyConfigured()) return NextResponse.json({ ok: false, error: "shopify not configured" }, { status: 503 });
+  if (!(await shopifyStatus()).connected) return NextResponse.json({ ok: false, error: "shopify not connected" }, { status: 503 });
   const tenant = await currentTenant();
   const r = await runAgents(tenant.id, "schedule", "schedule");
   return NextResponse.json({ ok: r.started, ran: r.results.length, failed: r.results.filter((x) => x.status === "failed").length });
