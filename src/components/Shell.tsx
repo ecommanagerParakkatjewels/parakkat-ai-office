@@ -36,9 +36,10 @@ export function Shell({
         </div>
         <div style={{ marginTop: "auto", padding: "var(--space-3)", borderTop: "1px solid rgba(255,255,255,.08)", font: "400 12px/16px var(--font-sans)", color: "var(--nav-ink-muted)" }}>
           {tenantName}
+          {email && <div title={email} style={{ marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{email}</div>}
           <form action="/auth/signout" method="post" style={{ marginTop: 8 }}>
             <button className="pj-btn pj-btn--sm" type="submit" style={{ background: "transparent", color: "var(--nav-ink)", borderColor: "var(--nav-ink-muted)" }}>
-              Sign out {email ? `(${email})` : ""}
+              Sign out
             </button>
           </form>
         </div>
