@@ -49,6 +49,12 @@ No Node on your machine? Paste `db/migrations/001_init.sql`, then `db/seed/001_b
 3. Run `npm run db:migrate` once against the production `DATABASE_URL`.
 4. Open `/api/health` — it answers `{"ok":true,"tenants":1}` when the database is reachable and migrated.
 
+## Database TLS
+
+Off-machine connections are always encrypted and the server certificate is always verified; there is no
+encrypt-without-verify mode. The Supabase root CA is bundled in `src/lib/db-ca.mjs` (public, valid to
+26 Apr 2031 — replace before then). `DATABASE_CA` overrides it if Supabase ever rotates.
+
 ## Tests
 
 ```

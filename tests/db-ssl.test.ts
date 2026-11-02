@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { sslFor } from "../src/lib/db-ssl.mjs";
+import { BUNDLED_CA } from "../src/lib/db-ca.mjs";
+import { X509Certificate } from "node:crypto";
 
 afterEach(() => { delete process.env.DATABASE_CA; });
 const REMOTE = "postgresql://u:p@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
@@ -23,5 +25,11 @@ describe("database TLS", () => {
       if (ca === undefined) delete process.env.DATABASE_CA; else process.env.DATABASE_CA = ca;
       expect(sslFor(REMOTE)?.rejectUnauthorized).toBe(true);
     }
+  });
+  it("bundles the Supabase root CA and uses it by default", () => {
+    const c = new X509Certificate(BUNDLED_CA);
+    expect(c.subject).toContain("CN=Supabase Root 2021 CA");
+    expect(c.ca).toBe(true);
+    expect(sslFor(REMOTE)).toEqual({ ca: BUNDLED_CA, rejectUnauthorized: true });
   });
 });
