@@ -1,13 +1,19 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { allowedEmails, isAllowed } from "@/lib/allow";
 
 async function signIn(formData: FormData) {
   "use server";
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  if (allowedEmails().length === 0) redirect("/login?error=config");
   const sb = await supabaseServer();
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) redirect("/login?error=1");
+  if (!isAllowed(email)) {
+    await sb.auth.signOut();
+    redirect("/login?error=denied");
+  }
   redirect("/");
 }
 
@@ -22,7 +28,9 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
         </div>
         {error && (
           <p className="pj-badge pj-badge--critical" style={{ height: "auto", padding: 8, whiteSpace: "normal" }}>
-            That email and password did not match.
+            {error === "denied" ? "This account is not allowed to use this office." :
+             error === "config" ? "Sign-in is not configured: ALLOWED_EMAILS is not set on the server." :
+             "That email and password did not match."}
           </p>
         )}
         <label className="pj-label" htmlFor="email">Email</label>

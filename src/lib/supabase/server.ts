@@ -2,6 +2,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isAllowed } from "@/lib/allow";
 
 export async function supabaseServer() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,9 +23,10 @@ export async function supabaseServer() {
   });
 }
 
-/** The signed-in user, or null. */
+/** The signed-in user, or null — also null for a signed-in account not on ALLOWED_EMAILS. */
 export async function currentUser() {
   const sb = await supabaseServer();
   const { data } = await sb.auth.getUser();
+  if (!data.user || !isAllowed(data.user.email)) return null;
   return data.user;
 }

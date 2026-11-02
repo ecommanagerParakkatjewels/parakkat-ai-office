@@ -43,7 +43,7 @@ Create your login in the Supabase dashboard (Authentication → Users → Add us
 ## Deploy
 
 1. Push this repo to GitHub.
-2. Vercel → New project → import it. Set the four variables from `.env.example`.
+2. Vercel → New project → import it. Set the variables from `.env.example` (`ALLOWED_EMAILS` is required: empty means nobody can sign in).
 3. Run `npm run db:migrate` once against the production `DATABASE_URL`.
 4. Open `/api/health` — it answers `{"ok":true,"tenants":1}` when the database is reachable and migrated.
 

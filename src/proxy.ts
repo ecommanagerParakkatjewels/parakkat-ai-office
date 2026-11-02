@@ -2,6 +2,7 @@
 // visitors on the login page. Single user for now; roles arrive with user two.
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAllowed } from "@/lib/allow";
 
 const PUBLIC = ["/login", "/auth", "/api/health", "/ds"];
 
@@ -11,7 +12,12 @@ export async function proxy(req: NextRequest) {
   let res = NextResponse.next({ request: req });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return res;
+  const path0 = req.nextUrl.pathname;
+  const isPublic0 = PUBLIC.some((p) => path0 === p || path0.startsWith(p + "/"));
+  // Fail closed: without sign-in configured, nothing but the public paths is served.
+  if (!url || !key) {
+    return isPublic0 ? res : new NextResponse("Sign-in is not configured on this deployment.", { status: 503 });
+  }
 
   const sb = createServerClient(url, key, {
     cookies: {
@@ -28,13 +34,14 @@ export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const isPublic = PUBLIC.some((p) => path === p || path.startsWith(p + "/"));
 
-  if (!data.user && !isPublic) {
+  const allowed = !!data.user && isAllowed(data.user.email);
+  if (!allowed && !isPublic) {
     const to = req.nextUrl.clone();
     to.pathname = "/login";
     to.search = "";
     return NextResponse.redirect(to);
   }
-  if (data.user && path === "/login") {
+  if (allowed && path === "/login") {
     const to = req.nextUrl.clone();
     to.pathname = "/";
     return NextResponse.redirect(to);
