@@ -3,6 +3,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import pg from "pg";
+import { sslFor } from "../src/lib/db-ssl.mjs";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -10,7 +11,7 @@ if (!url) {
   process.exit(1);
 }
 
-const client = new pg.Client({ connectionString: url });
+const client = new pg.Client({ connectionString: url, ssl: sslFor(url) });
 await client.connect();
 try {
   await client.query(`create table if not exists public.schema_migrations (
