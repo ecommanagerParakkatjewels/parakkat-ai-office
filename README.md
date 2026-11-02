@@ -2,15 +2,17 @@
 
 An operations system for Parakkat Jewels that takes a known problem to verified closure and proves it stayed closed. Claude is the reasoning engine, called from the server. Nothing here changes anything in Shopify, an ad or a shipment: the system recommends and records, people act.
 
-The full plan is the blueprint (`parakkat_ai_office_plan_v1.7.html` in the project docs). This README covers only running the code.
+The full plan is the blueprint (`parakkat_ai_office_plan_v1.8.html` in the project docs). This README covers only running the code.
 
 ## Status — 2 Nov 2026
 
+Live at https://parakkat-ai-office.vercel.app (Vercel, Mumbai) on Supabase (Mumbai). Every push to `main` deploys.
+
 | Day | Scope | State |
 |---|---|---|
-| 1 | Database schema with the lifecycle rules enforced in Postgres; 16 tests prove them | **Done** |
-| 2 | Sign-in, Inbox, Finding detail, Add finding | **Done** (sign-in needs your Supabase project) |
-| 3 | Status changes from the UI: triage, assign, fix reported, verify screen, close locked by the database | **Done** (full loop walked in a browser against `next build`, 12/12 steps) |
+| 1 | Database schema with the lifecycle rules enforced in Postgres; 16 tests prove them | **Done, live** (applied 2 Nov; close rule self-tested on production) |
+| 2 | Sign-in, Inbox, Finding detail, Add finding | **Done, live** |
+| 3 | Status changes from the UI: triage, assign, fix reported, verify screen, close locked by the database | **Done, live** (full loop 12/12 in a browser) |
 | 4 | Claude: triage drafts, run ledger, budget cap | Not started |
 | 5 | Saved checks, verification, register import | Not started |
 | 6 | Scheduled re-checks (Supabase Pro from here) | Not started |
