@@ -2,9 +2,9 @@
 
 An operations system for Parakkat Jewels that takes a known problem to verified closure and proves it stayed closed. Claude is the reasoning engine, called from the server. Nothing here changes anything in Shopify, an ad or a shipment: the system recommends and records, people act.
 
-The full plan is the blueprint (`parakkat_ai_office_plan_v1.6.html` in the project docs). This README covers only running the code.
+The full plan is the blueprint (`parakkat_ai_office_plan_v1.7.html` in the project docs). This README covers only running the code.
 
-## Status — 1 Nov 2026
+## Status — 2 Nov 2026
 
 | Day | Scope | State |
 |---|---|---|
@@ -38,7 +38,9 @@ npm run db:migrate                # creates the office schema, seeds the brand a
 npm run dev                       # http://localhost:3000
 ```
 
-Create your login in the Supabase dashboard (Authentication → Users → Add user). There is no self sign-up.
+Create your login in the Supabase dashboard (Authentication → Users → Add user), turn off "Allow new users to sign up", and put your email in `ALLOWED_EMAILS`. The app checks that list on every request, and refuses everything except `/login` and `/api/health` if the Supabase variables are missing.
+
+No Node on your machine? Paste `db/migrations/001_init.sql`, then `db/seed/001_base.sql`, into the Supabase SQL Editor and run each once.
 
 ## Deploy
 
@@ -64,7 +66,7 @@ src/app/         pages and routes (Next.js app router)
 src/lib/         db access (server only), tenant, finding queries
 src/components/  shared UI
 public/ds/       design-system styles (Parakkat SEO Command Center)
-tests/           database rule tests
+tests/           database rule tests, allowlist tests
 ```
 
 ## Rules carried into the code
