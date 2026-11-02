@@ -24,3 +24,51 @@ a:hover { color: var(--ink); }
 .arrowchar { align-self: center; color: var(--ink-subtle); font-size: 18px; line-height: 1; }
 
 @media (max-width: 768px) { .page-h1 { font-size: 28px; line-height: 30px; } }
+
+/* stage strip */
+.stages { display: flex; gap: 6px; align-items: stretch; flex-wrap: wrap; }
+
+/* inbox: table on wide screens, cards on phones */
+.inbox-cards { display: none; list-style: none; margin: 0; padding: 0; }
+.icard { display: grid; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.icard-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.icard-title { font: 600 15px/21px var(--font-sans); color: var(--ink); text-decoration: none; }
+.icard-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; line-height: 16px; color: var(--ink-muted); }
+.icard-act { justify-content: center; min-height: 44px; }
+
+/* phone bar: hidden until the sidebar is */
+.m-bar { display: none; }
+
+@media (max-width: 768px) {
+  .inbox-table { display: none; }
+  .inbox-cards { display: block; }
+  .stages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .stages .arrowchar { display: none; }
+  .stage { min-width: 0; padding: 8px 10px; }
+  .stage-n { font-size: 26px; line-height: 26px; }
+  .stage-l { font-size: 10px; letter-spacing: .04em; }
+  .m-bar { display: flex; align-items: center; gap: 4px; position: sticky; top: 0; z-index: 20; height: 52px; padding: 0 12px; background: var(--nav-bg); color: var(--nav-ink); }
+  .m-wm { color: var(--nav-ink); margin-right: auto; font-size: 18px; }
+  .m-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: 6px; color: var(--nav-ink-muted); text-decoration: none; font: 500 14px/20px var(--font-sans); }
+  .m-link[aria-current="page"] { color: var(--nav-ink); background: var(--nav-bg-active); }
+  .m-count { font: 600 11px/16px var(--font-sans); padding: 0 6px; border-radius: 999px; background: var(--nav-ink); color: var(--nav-bg); }
+  .m-more { position: relative; }
+  .m-more summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; color: var(--nav-ink-muted); font: 500 14px/20px var(--font-sans); }
+  .m-more summary::-webkit-details-marker { display: none; }
+  .m-menu { position: absolute; right: 0; top: 48px; display: grid; gap: 10px; min-width: 220px; padding: 12px; background: var(--surface-0); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); font-size: 13px; }
+  .pj-top .pj-btn, .pj-top .row-act { min-height: 40px; }
+}
+
+/* Tablets (769–1024px): the design system collapses the sidebar to an icon
+   rail, but this app's nav has text labels and no icons, so keep a narrow
+   labelled sidebar instead of clipping the words. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  html body .pj-shell { grid-template-columns: 176px minmax(0, 1fr); }
+  html body .pj-shell .pj-nav { justify-content: flex-start; }
+}
+@media (min-width: 769px) and (max-width: 1024px) { .hide-tab { display: none; } }
+/* the table never clips its last column: scroll inside the card if it must */
+.inbox-table { min-width: 0; }
+.pj-table-wrap { overflow-x: auto; }
+/* Below 900px the table cannot fit all its columns beside the sidebar: use the cards. */
+@media (max-width: 900px) { .inbox-table { display: none; } .inbox-cards { display: block; } }

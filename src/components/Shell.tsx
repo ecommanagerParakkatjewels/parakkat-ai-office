@@ -43,7 +43,28 @@ export function Shell({
           </form>
         </div>
       </nav>
-      <div className="pj-main">{children}</div>
+      <div className="pj-main">
+        {/* Phones: the sidebar is hidden below 768px, so the same links live in this bar. */}
+        <nav className="m-bar" aria-label="Main">
+          <span className="pj-wordmark m-wm">Parakkat</span>
+          {NAV.filter((n) => !n.soon).map((n) => (
+            <Link key={n.href} href={n.href} className="m-link" aria-current={current === n.href ? "page" : undefined}>
+              {n.label}{n.href === "/" && openCount > 0 && <span className="m-count">{openCount}</span>}
+            </Link>
+          ))}
+          <details className="m-more">
+            <summary aria-label="More">More</summary>
+            <div className="m-menu">
+              {NAV.filter((n) => n.soon).map((n) => <span key={n.href} className="pj-subtle">{n.label} · soon</span>)}
+              <span className="pj-subtle">{tenantName}</span>
+              <form action="/auth/signout" method="post">
+                <button className="pj-btn pj-btn--sm" type="submit">Sign out{email ? ` (${email})` : ""}</button>
+              </form>
+            </div>
+          </details>
+        </nav>
+        {children}
+      </div>
     </div>
   );
 }

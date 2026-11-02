@@ -45,7 +45,7 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
             <h2 className="sec-h" style={{ margin: 0 }}>Where the work is</h2>
             <span className="pj-src">Every finding, by how far it has got. Tap a stage to filter.</span>
           </div>
-          <div style={{ display: "flex", gap: 6, alignItems: "stretch", flexWrap: "wrap" }}>
+          <div className="stages">
             {STAGES.map((st, i) => {
               const c = count(st.s);
               const cls = st.s === "closed" ? "stage stage--done" : c.n > 0 && st.s === jam.s && c.n >= 5 ? "stage stage--jam" : "stage";
@@ -85,12 +85,12 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
           </div>
         ) : (
           <div className="pj-table-wrap">
-            <table className="pj-table">
+            <table className="pj-table inbox-table">
               <thead>
                 <tr>
-                  <th scope="col">ID</th><th scope="col">Finding</th><th scope="col">Area</th><th scope="col">Sev</th>
-                  <th scope="col">Scope, counted</th><th scope="col">Owner</th><th scope="col">Status</th>
-                  <th scope="col" className="pj-num">Age</th><th scope="col">Next action</th>
+                  <th scope="col">ID</th><th scope="col">Finding</th><th scope="col" className="pj-hide-md">Area</th><th scope="col">Sev</th>
+                  <th scope="col" className="pj-hide-md">Scope, counted</th><th scope="col">Owner</th><th scope="col">Status</th>
+                  <th scope="col" className="pj-num hide-tab">Age</th><th scope="col">Next action</th>
                 </tr>
               </thead>
               <tbody>
@@ -100,12 +100,12 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
                     <tr key={f.id}>
                       <td className="pj-mono">{f.ref}</td>
                       <td style={{ whiteSpace: "normal", minWidth: 240 }}><Link href={`/findings/${f.ref}`}>{f.title}</Link></td>
-                      <td>{f.area ? AREA_LABEL[f.area] : <span className="pj-subtle">Not triaged</span>}</td>
-                      <td>{f.severity ? <span className={`pj-badge ${SEV[f.severity]}`}>{f.severity}</span> : <span className="pj-subtle">—</span>}</td>
-                      <td>{f.scope_count != null ? `${f.scope_count.toLocaleString("en-IN")} ${f.scope_unit ?? ""} · ${f.scope_counted_at}` : <span className="pj-subtle">NOT VERIFIED</span>}</td>
+                      <td className="pj-hide-md">{f.area ? AREA_LABEL[f.area] : <span className="pj-subtle">Not triaged</span>}</td>
+                      <td>{f.severity ? <span className={`pj-badge ${SEV[f.severity]}`}>{f.severity}</span> : <span className="pj-subtle">Not triaged</span>}</td>
+                      <td className="pj-hide-md">{f.scope_count != null ? `${f.scope_count.toLocaleString("en-IN")} ${f.scope_unit ?? ""} · ${f.scope_counted_at}` : <span className="pj-subtle">NOT VERIFIED</span>}</td>
                       <td>{f.owner_name ?? <span className="pj-subtle">Unassigned</span>}</td>
                       <td><span className={`pj-badge ${STAT[f.status]}`}>{STATUS_LABEL[f.status]}{f.status === "recurred" && f.recurrence_count > 1 ? ` ×${f.recurrence_count}` : ""}</span></td>
-                      <td className="pj-num">{age(f.age_hours)}</td>
+                      <td className="pj-num hide-tab">{age(f.age_hours)}</td>
                       <td>
                         <Link href={`/findings/${f.ref}`} className={`pj-btn pj-btn--sm row-act ${act.primary ? "pj-btn--primary" : ""} ${act.danger ? "pj-btn--danger" : ""}`}>
                           {act.label}
@@ -116,6 +116,30 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
                 })}
               </tbody>
             </table>
+            <ul className="inbox-cards" aria-label="Findings">
+              {rows.map((f) => {
+                const act = nextAction(f.status);
+                return (
+                  <li key={f.id} className="icard">
+                    <div className="icard-top">
+                      <span className="pj-mono pj-muted">{f.ref}</span>
+                      {f.severity && <span className={`pj-badge ${SEV[f.severity]}`}>{f.severity}</span>}
+                      <span className={`pj-badge ${STAT[f.status]}`}>{STATUS_LABEL[f.status]}{f.status === "recurred" && f.recurrence_count > 1 ? ` ×${f.recurrence_count}` : ""}</span>
+                      <span className="pj-subtle" style={{ marginLeft: "auto", fontSize: 12 }}>{age(f.age_hours)}</span>
+                    </div>
+                    <Link href={`/findings/${f.ref}`} className="icard-title">{f.title}</Link>
+                    <div className="icard-meta">
+                      <span>{f.area ? AREA_LABEL[f.area] : "Not triaged"}</span>
+                      <span>{f.owner_name ?? "Unassigned"}</span>
+                      <span>{f.scope_count != null ? `${f.scope_count.toLocaleString("en-IN")} ${f.scope_unit ?? ""} · ${f.scope_counted_at}` : "Scope NOT VERIFIED"}</span>
+                    </div>
+                    <Link href={`/findings/${f.ref}`} className={`pj-btn row-act icard-act ${act.primary ? "pj-btn--primary" : ""} ${act.danger ? "pj-btn--danger" : ""}`}>
+                      {act.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
             <div className="pj-table-foot">
               <span>{rows.length} finding{rows.length === 1 ? "" : "s"} · sorted by severity, then age</span>
               <span>Nothing can be closed from this list</span>
